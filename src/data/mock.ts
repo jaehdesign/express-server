@@ -97,4 +97,4 @@ export const ANIMALS = [
     },
 ];
 
-export type Animal = (typeof ANIMALS)[0];
+export type Animal = (typeof ANIMALS)[0] & { lifestyle: 'Diurno' | 'Nocturno' };

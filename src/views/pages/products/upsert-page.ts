@@ -18,7 +18,9 @@ export class UpsertProductsPage extends BasePage {
         super(title);
     }
 
-    private renderFormItems = (item: Animal) => {
+    private renderFormItems = (item: Animal | null) => {
+        item = item?.name ? item : null;
+
         return html`
             <fieldset>
                 <label class="input">
@@ -28,8 +30,8 @@ export class UpsertProductsPage extends BasePage {
                         name="name"
                         placeholder=" "
                         required
-                        ${item.name && `value="${item.name}"`}
-                        ${item.name && 'readonly'}
+                        ${item && `value="${item.name}"`}
+                        ${item && 'readonly'}
                     />
                     <span>Nombre:</span>
                 </label>
@@ -39,7 +41,7 @@ export class UpsertProductsPage extends BasePage {
                         id="sciName"
                         name="sciName"
                         placeholder=" "
-                        ${item.sciName && `value="${item.sciName}"`}
+                        ${item && `value="${item.sciName}"`}
                     />
                     <span>Nombre científico:</span>
                 </label>
@@ -49,7 +51,7 @@ export class UpsertProductsPage extends BasePage {
                         id="englishName"
                         name="englishName"
                         placeholder=" "
-                        ${item.englishName && `value="${item.englishName}"`}
+                        ${item && `value="${item.englishName}"`}
                     />
                     <span>Nombre en inglés:</span>
                 </label>
@@ -59,7 +61,7 @@ export class UpsertProductsPage extends BasePage {
                         id="group"
                         name="group"
                         placeholder=" "
-                        ${item.group && `value="${item.group}"`}
+                        ${item && `value="${item.group}"`}
                     />
                     <span>Grupo (e.g. Mamíferos, Aves...):</span>
                 </label>
@@ -71,32 +73,41 @@ export class UpsertProductsPage extends BasePage {
                         id="image"
                         name="image"
                         placeholder=" "
-                        ${item.image && `value="${item.image}"`}
+                        ${item && `value="${item.image}"`}
                         required
                     />
                     <span>Url de la imagen:</span>
                 </label>
             </fieldset>
             <fieldset>
+                <datalist id="diets">
+                    <option value="Carnívoro"></option>
+                    <option value="Herbívoro"></option>
+                    <option value="Omnívoro"></option>
+                </datalist>
                 <label class="input">
                     <input
                         type="text"
                         id="diet"
                         name="diet"
                         placeholder=" "
-                        ${item.diet && `value="${item.diet}"`}
+                        list="diets"
+                        ${item && `value="${item.diet}"`}
                     />
-                    <span>Dieta (Carnívoro, Hervívoro...):</span>
+                    <span>Dieta (Carnívoro, Herbívoro...):</span>
                 </label>
-                <label class="input">
-                    <input
-                        type="text"
+                <label class="select">
+                    <span>Estilo de vida </span>
+                    <select
                         id="lifestyle"
                         name="lifestyle"
-                        placeholder=" "
-                        ${item.lifestyle && `value="${item.lifestyle}"`}
-                    />
-                    <span>Estilo de vida (Diurno, Nocturno):</span>
+                        ${item && `value="${item.lifestyle}"`}
+                    >
+                        <option></option>
+                        <option>Diurno</option>
+                        <option>Nocturno</option>
+                    </select>
+                  </label>
                 </label>
                 <label class="input">
                     <input
@@ -104,7 +115,7 @@ export class UpsertProductsPage extends BasePage {
                         id="location"
                         name="location"
                         placeholder=" "
-                        ${item.location && `value="${item.location}"`}
+                        ${item && `value="${item.location}"`}
                     />
                     <span>Localización:</span>
                 </label>
@@ -114,7 +125,7 @@ export class UpsertProductsPage extends BasePage {
                         id="slogan"
                         name="slogan"
                         placeholder=" "
-                        ${item.slogan && `value="${item.slogan}"`}
+                        ${item && `value="${item.slogan}"`}
                     />
                     <span>Lema:</span>
                 </label>
@@ -125,24 +136,10 @@ export class UpsertProductsPage extends BasePage {
     override renderMain({ mainTitle, mainContent }: PageContent) {
         debug('Iniciando renderMain');
 
-        if (!mainContent) {
-            mainContent = {
-                id: '',
-                name: '',
-                sciName: '',
-                englishName: '',
-                group: '',
-                image: '',
-                diet: '',
-                lifestyle: '',
-                location: '',
-                slogan: '',
-            };
-        }
-        const action = mainContent.name ? 'update/' + mainContent.id : 'create';
+        const action = mainContent ? 'update/' + mainContent.id : 'create';
         // const method = 'PUT/PATCH/DELETE' NO ES VÁLIDO EN HTML - se toma como GET;
         const method = 'POST';
-        const textButton = mainContent.name ? 'Actualizar' : 'Crear';
+        const textButton = mainContent ? 'Actualizar' : 'Crear';
         return html`
             <main>
                 <section>
