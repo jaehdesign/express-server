@@ -6,12 +6,24 @@ import type { Repository } from './repository.type.js';
 const debug = createDebug('demo:repository:animals');
 
 export class AnimalFileRepo implements Repository<Animal> {
-    odm: TypeODM<Animal>;
+    odm!: TypeODM<Animal>;
     collection: string;
+    file: string;
+    info: string[] = [];
     constructor(file = ODMLite.filePath, collection = 'animals') {
         debug('Instanciando repo for', file);
-        this.odm = new ODMLite<Animal>(file, collection);
+        this.file = file || './data/db.json';
         this.collection = collection;
+        this.connectDB();
+    }
+
+    async connectDB() {
+        this.info = await ODMLite.initializeJSON(this.file);
+        debug('FilePath:', ODMLite.filePath);
+        const soFilePath = ODMLite.filePath;
+        this.info.forEach((msg) => debug(msg));
+        debug('File:', this.file);
+        this.odm = new ODMLite<Animal>(soFilePath, this.collection);
     }
 
     async read(): Promise<Animal[]> {

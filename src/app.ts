@@ -1,4 +1,3 @@
-import { Connection } from 'mysql2/promise';
 import express from 'express';
 import createDebug from 'debug';
 import { resolve } from 'path';
@@ -15,8 +14,12 @@ import { HomeController } from './controllers/home.controller.js';
 import { createProductsRouter } from './routers/products.router.js';
 import { HomePage } from './views/pages/home-page.js';
 import { ProductsController } from './controllers/products.mvc.controller.js';
+import type { Repository } from './models/repository.type.js';
+import type { Animal } from './models/animal.type.js';
 import { AnimalFileRepo } from './models/animals.json.repository.js';
-import { AnimalSqlRepo } from './models/animals.sql.repository.js';
+import { AnimalSqliteRepo } from './models/animals.sqlite.repository.js';
+import { AnimalMySqlRepo } from './models/animals.mysql.repository.js';
+
 const debug = createDebug('demo:app');
 debug('Loaded module');
 
@@ -54,7 +57,21 @@ export const createApp = () => {
     const homeController = new HomeController(homeView);
     app.get('/', homeController.getPage);
 
-    const animalModel = new AnimalFileRepo();
+    let animalModel: Repository<Animal>;
+    switch (process.env.REPO as 'file' | 'sqlite' | 'mysql') {
+        case 'sqlite':
+            animalModel = new AnimalSqliteRepo();
+            break;
+        case 'mysql':
+            animalModel = new AnimalMySqlRepo();
+            break;
+        case 'file':
+            animalModel = new AnimalFileRepo();
+            break;
+        default:
+            throw new Error('Invalid repository');
+    }
+
     const productsController = new ProductsController(animalModel);
 
     app.use('/products', createProductsRouter(productsController));
