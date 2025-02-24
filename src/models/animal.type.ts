@@ -12,8 +12,7 @@ export const Animal = z.object({
     group: z.string().nonempty(),
     image: z.string().url(),
     diet: z.string(),
-    lifestyle: z.string(),
-    // lifestyle: z.enum(['Diurno', 'Nocturno']),
+    lifestyle: z.enum(['Diurno', 'Nocturno']),
     location: z.string(),
     slogan: z.string(),
 });
