@@ -10,7 +10,7 @@ const debug = createDebug('demo:controllers:products');
 debug('Loaded module');
 
 export class ProductsController {
-    data: Animal[] = ANIMALS;
+    data: Animal[] = ANIMALS as Animal[];
 
     constructor() {
         debug('Instanciando controller');

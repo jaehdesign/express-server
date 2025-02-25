@@ -52,13 +52,39 @@ export class AnimalMySqlRepo implements Repository<Animal> {
             this.connection.config.port,
         );
         await this.initializeDBs();
-        console.log('Connection to DB:', this.connection.config.database);
+        console.log('Connection to DB:', process.env.DB_NAME);
+    }
+    private animalRowToAnimal(row: AnimalRow): Animal {
+        return {
+            id: row.id,
+            name: row.name,
+            englishName: row.englishName,
+            sciName: row.sciName,
+            diet: row.diet,
+            lifestyle: row.lifestyle,
+            location: row.location,
+            slogan: row.slogan,
+            group: row.bioGroup,
+            image: row.image,
+        };
     }
 
     async read(): Promise<Animal[]> {
-        const q = 'SELECT * FROM animals';
+        const q = `SELECT 
+            BIN_TO_UUID(animalID) as id,
+            name,
+            englishName,
+            sciName,
+            diet,
+            lifestyle,
+            location,
+            slogan,
+            bio group as 'group',
+            image, 
+            FROM animals where animalID = UUID_TO_BIN(?)`;
         const [rows] = await this.connection.query<AnimalRow[]>(q);
-        return rows;
+        const animals = rows.map((row) => this.animalRowToAnimal(row));
+        return animals;
     }
 
     async readById(id: string): Promise<Animal> {
