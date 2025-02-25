@@ -1,50 +1,63 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { access, mkdir, writeFile } from 'node:fs/promises';
 import { resolve, dirname } from 'node:path';
 import { promisify } from 'node:util';
 import createDebug from 'debug';
-import sqlite3 from 'sqlite3';
+import sqlite3, { Database, RunResult } from 'sqlite3';
 import type { Animal } from './animal.type';
 import type { Repository } from './repository.type';
-import { run } from 'node:test';
+
 const debug = createDebug('demo:repository:animals');
 
-const SQL = {
-    run: async (db: any, sql: any, params: any) => {
-        return new Promise((resolve, reject) => {
-            db.run(sql, params, (err: any, row: any) => {
-                if (err) reject(err);
-                console.log('Row:', row);
-                resolve(row);
-            });
-        });
-    },
-    all: async (db: any, sql: any) => {
-        return new Promise((resolve, reject) => {
-            db.all(sql, (err: any, row: any) => {
-                if (err) reject(err);
-                resolve(row);
-            });
-        });
-    },
-    get: async (db: any, sql: any, params: any) => {
-        return new Promise((resolve, reject) => {
-            db.get(sql, params, (err: any, row: any) => {
-                if (err) reject(err);
-                resolve(row);
-            });
-        });
-    },
+type AnimalRow = {
+    id: number;
+    name: string;
+    englishName: string;
+    sciName: string;
+    diet: string;
+    lifestyle: 'Diurno' | 'Nocturno';
+    location: string;
+    slogan: string;
+    bioGroup: string;
+    image: string;
 };
+
+const SQL = (db: Database) => ({
+    // run: promisify(db.run.bind(db)),
+    run: async (q: string, args: unknown[]) => {
+        console.log('Query:', q);
+        console.log('Args:', args);
+
+        return new Promise<RunResult>((resolve, reject) => {
+            db.run(q, args, function (err: Error) {
+                if (err) reject(err);
+                resolve(this);
+            });
+        });
+    },
+    // get: promisify<string, Animal>(db.get.bind(db)),
+    get: async (q: string, ...args: unknown[]) => {
+        return new Promise<AnimalRow>((resolve, reject) => {
+            db.get(q, ...args, function (err: Error, row: AnimalRow) {
+                if (err) reject(err);
+                resolve(row);
+            });
+        });
+    },
+    // all: promisify(db.all.bind(db)),
+    all: async (q: string, ...args: unknown[]) => {
+        return new Promise<AnimalRow[]>((resolve, reject) => {
+            db.all(q, ...args, function (err: Error | null, rows: AnimalRow[]) {
+                if (err) reject(err);
+                resolve(rows);
+            });
+        });
+    },
+    exec: promisify(db.exec.bind(db)),
+});
 
 export class AnimalSqliteRepo implements Repository<Animal> {
     dataBase!: sqlite3.Database;
-    // SQL = {
-    //     run: promisify(this.dataBase.run.bind(this.dataBase)),
-    //     all: promisify(this.dataBase.all.bind(this.dataBase)),
-    //     get: promisify(this.dataBase.get.bind(this.dataBase)),
-    // };
     constructor() {
         console.log('Instanciando repo for sqlite');
         this.connectSQLite();
@@ -103,10 +116,25 @@ export class AnimalSqliteRepo implements Repository<Animal> {
 
         // const promiseRun = promisify(this.dataBase.run.bind(this.dataBase));
         // await promiseRun(query);
-        await promisify(this.dataBase.run.bind(this.dataBase))(query);
+        // await promisify(this.dataBase.run.bind(this.dataBase))(query);
 
-        // await SQL.run(query);
+        await SQL(this.dataBase).exec(query);
         debug('Creating table:', query);
+    }
+
+    private animalRowToAnimal(row: AnimalRow): Animal {
+        return {
+            id: row.id.toString(),
+            name: row.name,
+            englishName: row.englishName,
+            sciName: row.sciName,
+            diet: row.diet,
+            lifestyle: row.lifestyle,
+            location: row.location,
+            slogan: row.slogan,
+            group: row.bioGroup,
+            image: row.image,
+        };
     }
 
     private async connectSQLite() {
@@ -117,11 +145,9 @@ export class AnimalSqliteRepo implements Repository<Animal> {
         }
 
         const info = await this.initializeSQLITE(dbFile);
-        info.forEach((msg) => debug(msg));
+        info.forEach((msg) => debug('Info:', msg));
 
         const file = info.at(-1) as string;
-
-        // const file = resolve(dbFile);
 
         debug('Connecting to DB:', file);
         this.dataBase = new sqlite3.Database(file);
@@ -133,19 +159,26 @@ export class AnimalSqliteRepo implements Repository<Animal> {
     }
 
     async read(): Promise<Animal[]> {
-        const query = 'SELECT * FROM animals';
+        const query =
+            'SELECT id, name, englishName, sciName, diet, lifestyle, location, slogan, bioGroup, image FROM animals';
 
-        const data = (await SQL.all(this.dataBase, query)) as Animal[];
-        return data;
+        const data = await SQL(this.dataBase).all(query);
+
+        const animals: Animal[] = data.map((row) =>
+            this.animalRowToAnimal(row),
+        );
+
+        debug('Data:', animals);
+        return animals;
     }
     async readById(id: string): Promise<Animal> {
         const query = `SELECT * FROM animals WHERE id = ?`;
-        const data = (await SQL.get(this.dataBase, query, id)) as Animal;
-        return data;
+        const data = await SQL(this.dataBase).get(query, id);
+        return this.animalRowToAnimal(data);
     }
     async create(data: Omit<Animal, 'id'>): Promise<Animal> {
         const query = `INSERT INTO animals (name, englishName, sciName, diet, lifestyle, location, slogan, bioGroup, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-        const r = await SQL.run(this.dataBase, query, [
+        const { lastID, changes } = await SQL(this.dataBase).run(query, [
             data.name,
             data.englishName,
             data.sciName,
@@ -156,20 +189,60 @@ export class AnimalSqliteRepo implements Repository<Animal> {
             data.group,
             data.image,
         ]);
-        return data as Animal;
-        // await this.readById((r as any).lastID);
+
+        console.log('INSERT result:', lastID, changes);
+        return await this.readById(lastID.toString());
     }
     async update(
         id: string,
         data: Partial<Omit<Animal, 'id'>>,
     ): Promise<Animal> {
-        return {} as Animal;
+        const validFields: Record<string, string> = {
+            name: 'name',
+            englishName: 'englishName',
+            sciName: 'sciName',
+            diet: 'diet',
+            lifestyle: 'lifestyle',
+            location: 'location',
+            slogan: 'slogan',
+            group: 'bioGroup',
+            image: 'image',
+        };
+
+        const fields: string[] = [];
+        const values: unknown[] = [];
+
+        Object.entries(data).forEach(([key, value]) => {
+            if (!validFields[key]) {
+                throw new Error(`Invalid search field: ${key}`);
+            }
+            fields.push(`${validFields[key]} = ?`);
+            values.push(value);
+        });
+
+        const q = `update animals set ${fields.join(', ')}
+        where id = ?`;
+
+        // const q = `update animals set ${fields.join(', ')}
+        // where id = UUID_TO_BIN(?);`;
+
+        const result = await SQL(this.dataBase).run(q, [...values, id]);
+
+        // result.lastID // result.changes
+        // if (result.affectedRows !== 1) {
+        //    throw new Error('Movie not updated');
+        // }
+
+        const row = await this.readById(id.toString());
+
+        console.log('Movie updated with id:', id);
+        return row;
     }
     async delete(id: string): Promise<Animal> {
         const data = await this.readById(id);
 
         const query = `DELETE FROM animals WHERE id = ?`;
-        await SQL.run(this.dataBase, query, id);
+        await SQL(this.dataBase).run(query, [id]);
 
         return data;
     }

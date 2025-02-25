@@ -25,7 +25,7 @@ export type Animal = z.infer<typeof Animal>;
 //     englishName: string;
 //     sciName: string;
 //     diet: string;
-//     lifestyle: string;
+//     lifestyle: 'Diurno' |'Nocturno';
 //     location: string;
 //     slogan: string;
 //     group: string;
