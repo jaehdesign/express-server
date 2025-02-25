@@ -15,11 +15,15 @@ export class ProductsController {
         debug('Instanciando controller');
     }
 
-    getAllPage = async (req: Request, res: Response) => {
+    getAllPage = async (req: Request, res: Response, next: NextFunction) => {
         debug('Petición recibida en getAllPage');
-        const data = await this.model.read();
-        const view: ProductsPage = new ProductsPage();
-        res.send(view.render({ mainContent: data }));
+         try {
+             const data = await this.model.read();
+             const view: ProductsPage = new ProductsPage();
+             res.send(view.render({ mainContent: data }));
+         } catch (error) {
+             next(error as HttpError);
+         }
     };
 
     private showDetailPage = (item: Animal, res: Response) => {
@@ -81,7 +85,8 @@ export class ProductsController {
     updateProduct = async (req: Request, res: Response, next: NextFunction) => {
         debug('Petición PUT recibida en updateProduct');
         const { id } = req.params;
-        const data = { ...req.body, id };
+       //const data = { ...req.body, id };
+       const data = { ...req.body };
         try {
             await this.model.update(id, data);
             // throw error if not found

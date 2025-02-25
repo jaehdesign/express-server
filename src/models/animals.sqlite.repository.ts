@@ -4,7 +4,7 @@ import { resolve, dirname } from 'node:path';
 import { promisify } from 'node:util';
 import createDebug from 'debug';
 import sqlite3, { Database, RunResult } from 'sqlite3';
-import type { Animal } from './animal.type';
+import { Animal } from './animal.type.js';
 import type { Repository } from './repository.type';
 
 const debug = createDebug('demo:repository:animals');
@@ -177,6 +177,7 @@ export class AnimalSqliteRepo implements Repository<Animal> {
         return this.animalRowToAnimal(data);
     }
     async create(data: Omit<Animal, 'id'>): Promise<Animal> {
+        await Animal.parseAsync({ ...data, id: '0' });
         const query = `INSERT INTO animals (name, englishName, sciName, diet, lifestyle, location, slogan, bioGroup, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`;
         const { lastID, changes } = await SQL(this.dataBase).run(query, [
             data.name,
@@ -197,6 +198,7 @@ export class AnimalSqliteRepo implements Repository<Animal> {
         id: string,
         data: Partial<Omit<Animal, 'id'>>,
     ): Promise<Animal> {
+        await Animal.partial().parseAsync({ ...data, id });
         const validFields: Record<string, string> = {
             name: 'name',
             englishName: 'englishName',
@@ -226,24 +228,26 @@ export class AnimalSqliteRepo implements Repository<Animal> {
         // const q = `update animals set ${fields.join(', ')}
         // where id = UUID_TO_BIN(?);`;
 
-        const result = await SQL(this.dataBase).run(q, [...values, id]);
+        const { changes } = await SQL(this.dataBase).run(q, [...values, id]);
 
-        // result.lastID // result.changes
-        // if (result.affectedRows !== 1) {
-        //    throw new Error('Movie not updated');
-        // }
+        if (changes !== 1) {
+            throw new Error('Animal not updated');
+        }
 
-        const row = await this.readById(id.toString());
+        const updatedAnimal = await this.readById(id.toString());
 
-        console.log('Movie updated with id:', id);
-        return row;
+        console.log('Animal updated with id:', id);
+        return updatedAnimal;
     }
     async delete(id: string): Promise<Animal> {
         const data = await this.readById(id);
 
         const query = `DELETE FROM animals WHERE id = ?`;
-        await SQL(this.dataBase).run(query, [id]);
+        const { changes } = await SQL(this.dataBase).run(query, [id]);
 
+        if (changes !== 1) {
+            throw new Error('Animal not deleted');
+        }
         return data;
     }
 }
