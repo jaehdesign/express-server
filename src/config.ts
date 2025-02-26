@@ -37,18 +37,19 @@ setTimeout(() => {
     //     .join(',\n');
 
     q += data.animals
+        .filter((item) => item.name !== 'León')
         .map((animal: Record<string, unknown>) => {
             return `(
-                UUID_TO_BIN('${animal.id}'),
-                '${animal.name}',
-                '${animal.englishName}',
-                '${animal.sciName}',
-                '${animal.diet}',
-                '${animal.lifestyle}',
-                '${animal.location}',
-                '${animal.slogan}',
-                '${animal.group}',
-                '${animal.image}')`;
+                    UUID_TO_BIN('${animal.id}'),
+                    '${animal.name}',
+                    '${animal.englishName}',
+                    '${animal.sciName}',
+                    '${animal.diet}',
+                    '${animal.lifestyle}',
+                    '${animal.location}',
+                    '${animal.slogan}',
+                    '${animal.group}',
+                    '${animal.image}')`;
         })
         .join(', ');
 

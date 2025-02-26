@@ -66,11 +66,11 @@ export const createApp = () => {
         case 'mysql':
             animalModel = new AnimalMySqlRepo();
             break;
-        case 'file':
-            animalModel = new AnimalFileRepo();
-            break;
         case 'prisma':
             animalModel = new AnimalPrismaRepo();
+            break;
+        case 'file':
+            animalModel = new AnimalFileRepo();
             break;
         default:
             throw new Error('Invalid repository');

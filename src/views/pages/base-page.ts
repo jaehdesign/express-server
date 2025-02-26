@@ -37,7 +37,10 @@ export abstract class BasePage {
         debug('Iniciando render');
         const pageContent: PageContent = {
             mainTitle: info?.mainTitle || 'Section title',
-            mainContent: info?.mainContent || 'Section info',
+            mainContent:
+                typeof info?.mainContent === 'undefined'
+                    ? 'Section info'
+                    : info?.mainContent,
         };
 
         let page = html`

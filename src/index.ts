@@ -14,6 +14,6 @@ try {
     server.on('listening', () => listenManager(server));
     server.on('error', errorManager);
 } catch (err) {
-    console.error('Server Error::', err);
+    console.error('Server Error:', err);
     process.exit(1);
 }
