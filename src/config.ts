@@ -1,11 +1,12 @@
 // Fichero de configuración de la aplicación para el entorno de desarrollo con MySQL
 
-// import { AnimalMySqlRepo } from './models/animals.mysql.repository';
+import { AnimalMySqlRepo } from './models/animals.mysql.repository.js';
 import data from '../data/db.json' with { type: 'json' };
 
-// const repo = new AnimalMySqlRepo();
+const repo = new AnimalMySqlRepo();
 
-const q = `insert into animals (
+setTimeout(() => {
+    let q = `insert into animals (
     animalID,
     name,
     englishName,
@@ -17,14 +18,40 @@ const q = `insert into animals (
     bioGroup,
     image) VALUES `;
 
-const x = data.animals
-    .map((animal) => Object.values(animal))
-    .map((values) => `'${values}'`)
-    .join("', '");
+    // Problema del orden de los valores
 
-//.map((values) => `(${values})`);
+    // q += data.animals
+    //     .map((animal: Record<string, unknown>) => {
+    //         for (const key in animal) {
+    //             if (key === 'id') {
+    //                 animal[key] = `UUID('${animal.id}')`;
+    //                 continue;
+    //             }
+    //             animal[key] = `'${animal[key]}'`;
+    //         }
 
-console.log(x);
+    //         return animal;
+    //     })
+    //     .map((animal) => Object.values(animal).join(', '))
+    //     .map((values) => `(${values})`)
+    //     .join(',\n');
 
-//(UUID_TO_BIN('${uuid}'), ?, ?, ?, ?, ?, ?, ?, ?, ?);`;
-// repo.connection.query(q);
+    q += data.animals
+        .map((animal: Record<string, unknown>) => {
+            return `(
+                UUID_TO_BIN('${animal.id}'),
+                '${animal.name}',
+                '${animal.englishName}',
+                '${animal.sciName}',
+                '${animal.diet}',
+                '${animal.lifestyle}',
+                '${animal.location}',
+                '${animal.slogan}',
+                '${animal.group}',
+                '${animal.image}')`;
+        })
+        .join(', ');
+
+    repo.connection.query(q);
+    repo.connection.end();
+}, 2000);

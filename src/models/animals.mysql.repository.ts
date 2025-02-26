@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import mysql, { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
 import createDebug from 'debug';
 import { Animal } from './animal.type.js';

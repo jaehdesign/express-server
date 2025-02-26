@@ -1,14 +1,15 @@
 {
-    "name": "project.express",
+    "name": "11.express",
     "version": "1.0.0",
     "main": "index.js",
     "type": "module",
     "scripts": {
         "start": "node dist/index.js",
-        "start:dev": "npm run start:dev:file",
+        "start:dev": "npm run start:dev:mysql",
         "start:dev:file": "cross-env NODE_ENV=dev DEBUG=demo* REPO=file node --watch --env-file=.env ./dist/index.js",
         "start:dev:sqlite": "cross-env NODE_ENV=dev DEBUG=demo* REPO=sqlite node --watch --env-file=.env ./dist/index.js",
         "start:dev:mysql": "cross-env NODE_ENV=dev DEBUG=demo* REPO=mysql node --watch --env-file=.env ./dist/index.js",
+        "config:animals": "cross-env NODE_ENV=dev DEBUG=demo* node --env-file=.env ./dist/config.js",
         "build": "tsc -w",
         "test": "vitest run",
         "test:c": "vitest run --coverage",
