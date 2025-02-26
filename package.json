@@ -9,6 +9,7 @@
         "start:dev:file": "cross-env NODE_ENV=dev DEBUG=demo* REPO=file node --watch --env-file=.env ./dist/index.js",
         "start:dev:sqlite": "cross-env NODE_ENV=dev DEBUG=demo* REPO=sqlite node --watch --env-file=.env ./dist/index.js",
         "start:dev:mysql": "cross-env NODE_ENV=dev DEBUG=demo* REPO=mysql node --watch --env-file=.env ./dist/index.js",
+        "start:dev:prisma": "cross-env NODE_ENV=dev DEBUG=demo* REPO=prisma node --watch --env-file=.env ./dist/index.js",
         "config:animals": "cross-env NODE_ENV=dev DEBUG=demo* node --env-file=.env ./dist/config.js",
         "build": "tsc -w",
         "test": "vitest run",
@@ -33,11 +34,13 @@
         "eslint": "^9.20.1",
         "globals": "^16.0.0",
         "prettier": "^3.5.1",
+        "prisma": "^6.4.1",
         "typescript": "^5.7.3",
         "typescript-eslint": "^8.24.1",
         "vitest": "^3.0.6"
     },
     "dependencies": {
+        "@prisma/client": "^6.4.1",
         "body-parser": "^1.20.3",
         "cors": "^2.8.5",
         "cross-env": "^7.0.3",

@@ -19,6 +19,7 @@ import type { Animal } from './models/animal.type.js';
 import { AnimalFileRepo } from './models/animals.json.repository.js';
 import { AnimalSqliteRepo } from './models/animals.sqlite.repository.js';
 import { AnimalMySqlRepo } from './models/animals.mysql.repository.js';
+import { AnimalPrismaRepo } from './models/animals.prisma.repository.js';
 
 const debug = createDebug('demo:app');
 debug('Loaded module');
@@ -58,7 +59,7 @@ export const createApp = () => {
     app.get('/', homeController.getPage);
 
     let animalModel: Repository<Animal>;
-    switch (process.env.REPO as 'file' | 'sqlite' | 'mysql') {
+    switch (process.env.REPO as 'file' | 'sqlite' | 'mysql' | 'prisma') {
         case 'sqlite':
             animalModel = new AnimalSqliteRepo();
             break;
@@ -67,6 +68,9 @@ export const createApp = () => {
             break;
         case 'file':
             animalModel = new AnimalFileRepo();
+            break;
+        case 'prisma':
+            animalModel = new AnimalPrismaRepo();
             break;
         default:
             throw new Error('Invalid repository');
