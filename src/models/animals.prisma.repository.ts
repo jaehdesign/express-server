@@ -127,4 +127,4 @@ export class AnimalPrismaRepo implements Repository<Animal> {
         const animal = this.animalRowToAnimal(row as animals);
         return animal;
     }
-}
+ }
