@@ -8,7 +8,7 @@ datasource db {
 }
 
 model animals {
-  animalID    Bytes     @id @default(dbgenerated("(uuid_to_bin(uuid()))")) @db.Binary(16)
+  animalID    Bytes     @id @default(dbgenerated("(uuid_to_bin(uuid()))")) @db.Binary(38)
   name        String    @unique(map: "name") @db.VarChar(255)
   englishName String    @unique(map: "englishName") @db.VarChar(255)
   sciName     String    @db.VarChar(255)
